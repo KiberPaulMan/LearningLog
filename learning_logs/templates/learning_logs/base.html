@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<body style="background: lightcyan">
+<body>
     <p>
-        <a href="{% url 'index' %}">Learning Log</a> -
+        <a href="{% url 'index' %}">Learning Log</a>
         <a href="{% url 'topics' %}">Topics</a>
     </p>
-    {% block content %}
-    {% endblock content %}
+    {% block content %}{% endblock content %}
 </body>
 </html>
