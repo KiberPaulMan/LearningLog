@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # My apps
     'learning_logs',
+    'users',
+    'bootstrap3'
 ]
 
 MIDDLEWARE = [
@@ -121,3 +123,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Переадресация на страницу регистрации пользователя
+LOGIN_URL = '/users/login/'
+
+# Настройки django-bootstrap3
+BOOTSTRAP3 = {
+'include_jquery': True,
+}

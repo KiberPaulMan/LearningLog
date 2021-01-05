@@ -1,6 +1,6 @@
 from django.shortcuts import render
-
-from django.http import HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse
 
 from .models import Topic, Entry
@@ -15,20 +15,26 @@ def index(request):
     return render(request, 'learning_logs/index.html')
 
 
+@login_required
 def topics(request):
     """Выводит список тем"""
-    obj_topics = Topic.objects.order_by('date_added')
+    obj_topics = Topic.objects.filter(owner=request.user).order_by('date_added')
     context = {'topics': obj_topics}
     return render(request, 'learning_logs/topics.html', context)
 
 
+@login_required
 def topic(request, topic_id):
     obj_topic = Topic.objects.get(id=topic_id)
+    # Проверка того, что тема принадлежит текущему пользователю.
+    if obj_topic.owner != request.user:
+        raise Http404
     entries = obj_topic.entry_set.order_by('-date_added')
     context = {'topic': obj_topic, 'entries': entries}
     return render(request, 'learning_logs/topic.html', context)
 
 
+@login_required
 def new_topic(request):
     """Определяет новую тему"""
     if request.method != 'POST':
@@ -38,13 +44,17 @@ def new_topic(request):
         # Отправлены данные POST, обработать данные
         form = TopicForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_topic_ = form.save(commit=False)
+            new_topic_.owner = request.user
+            new_topic_.save()
+            # form.save()
             return HttpResponseRedirect(reverse('topics'))
 
     context = {'form': form}
     return render(request, 'learning_logs/new_topic.html', context)
 
 
+@login_required
 def new_entry(request, topic_id):
     """Добавляет новую запись по конкретной теме"""
     topic_obj = Topic.objects.get(id=topic_id)
@@ -65,10 +75,14 @@ def new_entry(request, topic_id):
     return render(request, 'learning_logs/new_entry.html', context)
 
 
+@login_required
 def edit_entry(request, entry_id):
     """Редактирует существующую запись"""
     entry = Entry.objects.get(id=entry_id)
     topic_obj = entry.topic
+
+    if topic_obj.owner != request.user:
+        raise Http404
 
     if request.method != 'POST':
         # Исходный запрос; форма заполняется данными текущей записи.
